@@ -2,12 +2,16 @@
 from MENSAGEM import titulocentralizado, linha, mensagemRetornaOpcao
 from CORES import corFont
 from datetime import datetime, time, date
+from ATUALIZACAO import AtualizarSistema
 
 import pandas as pd
 import random as rd
 import os
 
 os.system("color")
+
+
+AtualizarSistema()
 
 
 def tituloprograma():
