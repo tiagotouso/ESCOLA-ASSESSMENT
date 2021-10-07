@@ -1,6 +1,7 @@
 import wget
 import requests
 import os
+from MENSAGEM import titulocentralizado, linha
 
 def AtualizarSistema():
 
@@ -14,10 +15,14 @@ def AtualizarSistema():
     acessointernet = False
 
     if str(requests.get('https://www.google.com.br')) == "<Response [200]>":
-        print("Acesso a internet")
+        linha()
+        print("Sistema com acesso à internet")
+        linha()
         acessointernet = True
     else:
-        print("Sem acesso a internet")
+        linha()
+        print("Sistema sem acesso à internet")
+        linha()
 
 
     if acessointernet == True:
@@ -36,8 +41,12 @@ def AtualizarSistema():
                 link = "https://raw.githubusercontent.com/tiagotouso/ESCOLA-ASSESSMENT/main/{}".format(arquivo)
                 wget.download(arquivo)
 
-            print('Programa atualizado com sucesso')
-            input('Finalize o programa para atualizar')
+            linha()
+            print('Sistema atualizado com sucesso')
+            input('Finalize o Sistema para atualizar')
+            linha()
         else:
+            linha()
             print("Sistema já está atualizado")
+            linha()
 

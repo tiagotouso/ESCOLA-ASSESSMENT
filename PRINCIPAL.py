@@ -11,7 +11,7 @@ import os
 os.system("color")
 
 
-AtualizarSistema()
+# AtualizarSistema()
 
 
 def tituloprograma():
@@ -32,7 +32,8 @@ def importarQuestoes(qtquestoes):
 
         dados = pd.concat([dados, dd])
 
-
+    dados.fillna('', inplace=True)
+    dados.reset_index(inplace=True, drop=True)
 
     # SORTEAR NOMENTE XX QUESTÕES DE CADA MODULO
     if qtquestoes != 0:
@@ -49,9 +50,6 @@ def importarQuestoes(qtquestoes):
 
         dados = dados.query('index in {0}'.format(lista))
 
-    dados.reset_index(inplace=True, drop=True)
-    dados.fillna('', inplace=True)
-
     return dados
 
 
@@ -60,9 +58,13 @@ def filtrarQuestoes(dados, dic):
     listaindex = []
     for vl in dic.keys():
         dd = dados[dados['materia'] == vl]
-        listaindex.extend(rd.sample(list(dd.index), dic[vl]))
+        if len(dd) > dic[vl]:
+            listaindex.extend(rd.sample(list(dd.index), dic[vl]))
+        else:
+            tm = len(dd) - 2
+            listaindex.extend(rd.sample(list(dd.index), tm))
 
-    resultado = dados.query('index in {0}'.format(listaindex))
+    resultado = dados.query('index in {0}'.format(listaindex)).copy()
     resultado.to_csv('_questoes_sorteadas.csv', sep='\t', encoding='utf-16')
 
     return resultado
@@ -91,13 +93,13 @@ def sortearQuestoes(dados, quantidade):
     return dados
 
 
-def imprimirquestao(contador, materia, modulo, questao, questaoc = ''):
+def imprimirquestao(contador, materia, modulo, questao, questaoc):
 
     print()
     print(materia)
     print(modulo)
-    if questao[0] == '\n' and len(questao) > 0:
-        questao = questao[1:]
+    # if questao[0] == '\n' and len(questao) > 0:
+    #     questao = questao[1:]
 
     txtquestao = corFont("{0}) {1}".format(contador, questao), 'amar')
     print(txtquestao)
