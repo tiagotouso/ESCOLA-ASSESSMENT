@@ -1,14 +1,17 @@
 import wget
 import requests
 import os
-from MENSAGEM import titulocentralizado, linha
+from MENSAGEM import linha
 
 def AtualizarSistema():
 
     def lerArquivo():
-        arquivo = open('archives.txt', 'r')
-        texto = arquivo.read()
-        arquivo.close()
+        if os.path.exists('arquives.txt') == True:
+            arquivo = open('archives.txt', 'r')
+            texto = arquivo.read()
+            arquivo.close()
+        else:
+            texto = ''
 
         return texto
 
@@ -35,11 +38,12 @@ def AtualizarSistema():
 
         arquivoDownload = lerArquivo()
 
-        if arquivoDisco != arquivoDownload:
+        if arquivoDisco != arquivoDownload and len(arquivoDownload) > 0:
 
             for arquivo in arquivoDownload:
                 link = "https://raw.githubusercontent.com/tiagotouso/ESCOLA-ASSESSMENT/main/{}".format(arquivo)
                 wget.download(arquivo)
+                print()
 
             linha()
             print('Sistema atualizado com sucesso')

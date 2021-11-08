@@ -1,3 +1,4 @@
+import os
 
 from colored import fg, bg, attr
 
@@ -60,5 +61,4 @@ def exemplo():
         txt += ('%s %s %s'%(bg(vl), vl, attr('reset')))
     print(txt)
     print()
-
 

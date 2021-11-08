@@ -72,7 +72,6 @@ def filtrarQuestoes(dados, dic):
 
 def filtrarQuestoesModulo(dados, dic):
 
-
     listaindex = []
     for mt in dic.keys():
         for md in dic[mt].keys():
@@ -112,18 +111,26 @@ def imprimirquestao(contador, materia, modulo, questao, questaoc):
 def corrigirquestao(ce, resposta, correcaotxt):
 
     pontuacaousuario = 0
-    printrespostaacertiva = 'A acertiva está "Errada"'
+
     if ce == 'C':
         printrespostaacertiva = 'A acertiva está "Correta"'
         if resposta == '1':
             pontuacaousuario = 1
+        elif resposta == '0':
+            pontuacaousuario = -1
     else:
+        printrespostaacertiva = 'A acertiva está "Errada"'
         if resposta == '0':
             pontuacaousuario = 1
+        elif resposta == '1':
+            pontuacaousuario = -1
 
-    printrespostausuario = corFont('Que pena, você errou! : (', 'verm')
-    if pontuacaousuario == 1:
+    if pontuacaousuario == 0:
+        printrespostausuario = corFont('Você pulou esta questão! : |', 'azul')
+    elif pontuacaousuario == 1:
         printrespostausuario = corFont('Parabéns, você acertou! : )', 'verd')
+    else:
+        printrespostausuario = corFont('Que pena, você errou! : (', 'verm')
 
     linha()
     print(printrespostaacertiva)
@@ -139,6 +146,10 @@ def corrigirquestao(ce, resposta, correcaotxt):
 def desempenho(tabela, tbtemposimulado, tbtempoquestao):
 
     dados = pd.DataFrame(tabela, columns = ['MATÉRIA', 'MÓDULO', 'PONTOS'])
+
+    dados['PONTOS_C'] = dados['PONTOS'].apply(lambda x: 1 if x == 1 else 0)
+    dados['PONTOS_E'] = dados['PONTOS'].apply(lambda x: 1 if x == -1 else 0)
+    dados['PONTOS_B'] = dados['PONTOS'].apply(lambda x: 1 if x == 0 else 0)
 
     tempo = pd.DataFrame(tbtempoquestao, columns=['MATÉRIA', 'MÓDULO', 'TEMPO'])
     tempo['TEMPO'] = tempo['TEMPO'].apply(lambda x: round(x / 60, 2))
@@ -181,9 +192,15 @@ def desempenho(tabela, tbtemposimulado, tbtempoquestao):
     print('DESEMPENHO PONTOS')
     linha()
 
-    tb = [[dados['PONTOS'].count(), dados['PONTOS'].sum(), dados['PONTOS'].sum() / dados['PONTOS'].count() * 100]]
+    # tb = [[dados['PONTOS'].count(), dados['PONTOS'].sum(), dados['PONTOS'].sum() / dados['PONTOS'].count() * 100]]
+    # resultado = pd.DataFrame(tb,
+    #                          columns=['QUATIDADES', 'PONTOS', 'DESEMPENHO'],
+    #                          index=['GERAL'])
+    tb = [[dados['PONTOS'].count(), dados['PONTOS_C'].sum(), dados['PONTOS_E'].sum(), dados['PONTOS_B'].sum(),
+           round(dados['PONTOS_C'].sum() / dados['PONTOS'].count() * 100, 2),
+           round(dados['PONTOS'].sum() / dados['PONTOS'].count() * 100, 2)]]
     resultado = pd.DataFrame(tb,
-                             columns=['QUATIDADES', 'PONTOS', 'DESEMPENHO'],
+                             columns=['QUATIDADES', 'CERTOS', 'ERRADOS', 'BRANCOS', 'DES_BRUTO', 'DES_LÍQUIDO'],
                              index=['GERAL'])
 
     datastr = str(datetime.now())[0:16].replace(':', '')
@@ -192,26 +209,35 @@ def desempenho(tabela, tbtemposimulado, tbtempoquestao):
     print()
     linha()
 
-    resultado = dados.groupby(['MATÉRIA']).agg(QUANTIDADES=('MATÉRIA', 'count'),
-                                   PONTOS=('PONTOS', sum),
-                                   DESEMPENHO=('PONTOS', lambda x: round(
-                                       sum(x) / x.count() * 100)))
+    # resultado = dados.groupby(['MATÉRIA']).agg(QUANTIDADES=('MATÉRIA', 'count'),
+    #                                PONTOS=('PONTOS', sum),
+    #                                DESEMPENHO=('PONTOS', lambda x: round(
+    #                                    sum(x) / x.count() * 100)))
+    resultado = dados.groupby(['MATÉRIA']).agg(QUANTIDADES=('MATÉRIA', 'count'), CERTOS=('PONTOS_C', sum),
+                                               ERRADOS=('PONTOS_E', sum), BRANCOS=('PONTOS_B', sum),
+                                               DES_BRUTO=('PONTOS_C', lambda x: round(sum(x) / x.count() * 100)),
+                                               DES_LÍQUIDO=('PONTOS', lambda x: round( sum(x) / x.count() * 100)))
 
     resultado.to_csv("GERROT_DESEMPENHO//{0} RESULTADO TOTAL (MATÉRIA).csv".format(datastr), sep='\t', encoding='utf-16')
     print(resultado)
     print()
     linha()
 
-    resultado = dados.groupby(['MATÉRIA', 'MÓDULO']).agg(QUANTIDADES=('MATÉRIA', 'count'),
-                                               PONTOS=('PONTOS', sum),
-                                               DESEMPENHO=(
-                                               'PONTOS', lambda x: round(
-                                                   sum(x) / x.count() * 100)))
+    # resultado = dados.groupby(['MATÉRIA', 'MÓDULO']).agg(QUANTIDADES=('MATÉRIA', 'count'),
+    #                                            PONTOS=('PONTOS', sum),
+    #                                            DESEMPENHO=(
+    #                                            'PONTOS', lambda x: round(
+    #                                                sum(x) / x.count() * 100)))
+    resultado = dados.groupby(['MATÉRIA', 'MÓDULO']).agg(
+        QUANTIDADES=('MATÉRIA', 'count'), CERTOS=('PONTOS_C', sum), ERRADOS=('PONTOS_E', sum), BRANCOS=('PONTOS_B', sum),
+        DES_BRUTO=('PONTOS_C', lambda x: round(sum(x) / x.count() * 100)),
+        DES_LÍQUIDO=('PONTOS', lambda x: round(sum(x) / x.count() * 100)))
 
     resultado.to_csv("GERROT_DESEMPENHO//{0} RESULTADO TOTAL (MATÉRIA - MÓDULO).csv".format(datastr), sep='\t', encoding='utf-16')
     print(resultado)
     linha()
     input()
+
 
 def simuladotxt(dados):
 
@@ -282,7 +308,7 @@ def simulado(dados):
         # HORA INICIAL DA QUESTÃO
         hiq = datetime.now()
 
-        op = mensagemRetornaOpcao('A acertiva está Correta ou Errada ? ', '1, 0')
+        op = mensagemRetornaOpcao('A acertiva está Correta ou Errada ? [0=Errada, 1=Correta, 2=Pular] ', '0, 1, 2')
 
         # HORA FINAL DA QUESTÃO
         hfq = datetime.now()
@@ -301,7 +327,7 @@ def simulado(dados):
     dados.to_csv('GERROT_ERROS//{0} ERROS.csv'.format(datastr), sep='\t', encoding='utf-16')
 
     txterros = 'QUESTÕES ERRADAS\n'
-    for mt, md, qt, qtc, ce, c in dados[dados['PONTOS'] == 0][['materia', 'modulo', 'questao', 'questaocomplemento', 'c-e', 'correcao']].values:
+    for mt, md, qt, qtc, ce, c in dados[dados['PONTOS'] == -1][['materia', 'modulo', 'questao', 'questaocomplemento', 'c-e', 'correcao']].values:
         txterros += "\n{0}\n{1}\n{2}\n{3}\n{4}\n{5}\n\n".format(mt, md, qt, qtc, ce, c)
         txterros += '-' * 50
 
@@ -309,11 +335,22 @@ def simulado(dados):
     arq.write(txterros)
     arq.close()
 
+
+    txterros = 'QUESTÕES EM BRANCO\n'
+    for mt, md, qt, qtc, ce, c in dados[dados['PONTOS'] == 0][['materia', 'modulo', 'questao', 'questaocomplemento', 'c-e', 'correcao']].values:
+        txterros += "\n{0}\n{1}\n{2}\n{3}\n{4}\n{5}\n\n".format(mt, md, qt, qtc, ce, c)
+        txterros += '-' * 50
+
+    arq = open('GERROT_ERROS//{0} EM BRANCO.txt'.format(datastr), 'w', encoding='utf-16')
+    arq.write(txterros)
+    arq.close()
+
+
     hfs = datetime.now()
     ts = hfs - his
     tbtempodesimulado = [his, hfs, ts]
 
-    desempenho(tb, tbtempodesimulado, tbtempoquestoes )
+    desempenho(tb, tbtempodesimulado, tbtempoquestoes)
 
 '''-----'''
 
